@@ -12,7 +12,7 @@ public class TxAiClientTest {
     private final TxAiClient txAiClient;
 
     public TxAiClientTest() {
-        this.txAiClient = new TxAiClient("1106921819", "");
+        this.txAiClient = new TxAiClient("", "");
     }
 
     @Test

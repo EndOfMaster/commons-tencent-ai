@@ -5,6 +5,7 @@ import com.endofmaster.commons.util.sign.Md5SignUtils;
 import com.endofmaster.commons.util.sign.PresignUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.security.SignatureException;
 import java.util.ArrayList;
@@ -51,16 +53,16 @@ public class TxAiClient {
             Map<String, String> params = request.buildParams();
             params.put("app_id", appId);
             params.put("time_stamp", System.currentTimeMillis() / 1000 + "");
-            params.put("nonce_str", RandomStringUtils.randomAlphanumeric(32));
+            params.put("nonce_str", RandomStringUtils.randomAlphanumeric(24));
             params.put("sign", sign(params).toUpperCase());
 
             RequestBuilder requestBuilder = RequestBuilder.create("POST").setUri(request.getUrl());
             List<NameValuePair> nameValuePairs = new ArrayList<>();
             for (String key: params.keySet()) {
-                String value = params.get(key);
+                String value = URLDecoder.decode(params.get(key), CHARSET);
                 nameValuePairs.add(new BasicNameValuePair(key, value));
             }
-            HttpEntity httpEntity = new UrlEncodedFormEntity(nameValuePairs);
+            HttpEntity httpEntity = new UrlEncodedFormEntity(nameValuePairs,Charset.forName(CHARSET));
             requestBuilder.setEntity(httpEntity);
             HttpResponse response = httpClient.execute(requestBuilder.build());
             String json = StreamUtils.copyToString(response.getEntity().getContent(), Charset.forName(CHARSET));
@@ -72,9 +74,9 @@ public class TxAiClient {
     }
 
     private String sign(Map<String, String> params) throws SignatureException {
-        String preSignStr = PresignUtils.createLinkString(params, true);
-        logger.info("预签名字符串：" + preSignStr);
-        return Md5SignUtils.sign(preSignStr, "&key=" + appKey, CHARSET);
+        String preSignStr = PresignUtils.createLinkString(params, true) + "&app_key=" + appKey;
+        logger.debug("预签名字符串：" + preSignStr);
+        return DigestUtils.md5Hex(preSignStr);
     }
 
 }
