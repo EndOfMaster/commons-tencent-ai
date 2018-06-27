@@ -11,6 +11,7 @@ import static com.endofmaster.txAi.TxAiConstant.CHARSET;
 
 /**
  * @author ZM.Wang
+ * 智能闲聊
  */
 public class NlpTextChatRequest extends TxAiRequest<NlpTextChatResponse> {
 

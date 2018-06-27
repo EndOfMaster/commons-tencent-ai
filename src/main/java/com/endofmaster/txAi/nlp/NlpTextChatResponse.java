@@ -8,4 +8,26 @@ import com.endofmaster.txAi.TxAiResponse;
  */
 public class NlpTextChatResponse extends TxAiResponse {
 
+    private Data data;
+
+    private static class Data {
+        String session;
+        String answer;
+
+        public String getSession() {
+            return session;
+        }
+
+        public String getAnswer() {
+            return answer;
+        }
+    }
+
+    public String getAnswer() {
+        return data.answer;
+    }
+
+    public Data getData() {
+        return data;
+    }
 }
