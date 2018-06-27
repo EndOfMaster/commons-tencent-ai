@@ -12,12 +12,12 @@ public class TxAiClientTest {
     private final TxAiClient txAiClient;
 
     public TxAiClientTest() {
-        this.txAiClient = new TxAiClient("1106921819", "OCmd4mvl7REf1cgS");
+        this.txAiClient = new TxAiClient("", "");
     }
 
     @Test
     public void NlpTextChatTest() {
-        NlpTextChatRequest request = new NlpTextChatRequest("wejuai", "你是谁");
+        NlpTextChatRequest request = new NlpTextChatRequest("wejuai", "asdasd");
         NlpTextChatResponse response = txAiClient.execute(request);
         if (response.successful()) {
             System.err.println(response.getAnswer());

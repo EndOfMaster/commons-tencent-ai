@@ -66,7 +66,7 @@ public class TxAiClient {
             requestBuilder.setEntity(httpEntity);
             HttpResponse response = httpClient.execute(requestBuilder.build());
             String json = StreamUtils.copyToString(response.getEntity().getContent(), Charset.forName(CHARSET));
-            logger.info("腾讯开放平台请求结果json：" + json);
+            logger.debug("腾讯开放平台请求结果json：" + json);
             return MAPPER.readValue(json, request.responseClass());
         } catch (SignatureException | IOException e) {
             throw new TxAiException(e);
