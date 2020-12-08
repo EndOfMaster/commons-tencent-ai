@@ -2,7 +2,7 @@ package com.endofmaster.txAi;
 
 import com.endofmaster.txAi.nlp.NlpTextChatRequest;
 import com.endofmaster.txAi.nlp.NlpTextChatResponse;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author ZM.Wang
