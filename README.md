@@ -1,4 +1,5 @@
 # Tencent AI Open Platform(腾讯AI开放平台)
+![image](https://img.shields.io/badge/maven-1.0.1-green.svg)
 
 ## 步骤
 1. 注入TxAiClient的bean或创建对象
@@ -11,25 +12,17 @@
 - 智能闲聊
 
 ## Maven Repository
-  https://dl.bintray.com/endofmaster/maven
-
-version: ![image](https://img.shields.io/badge/maven-1.0.0-green.svg)
-
+    https://maven.pkg.github.com/EndOfMaster/maven-repo
 ### Maven Import
-
-the x.y.z is version
-
 ```xml
  <dependency>
    <groupId>com.endofmaster</groupId>
-   <artifactId>commons-TxAi</artifactId>
+   <artifactId>commons-tencent-ai</artifactId>
    <version>x.y.z</version>
    <type>pom</type>
  </dependency>
 ```
-
 ### Gradle Import
-
-```gradle
- compile 'com.endofmaster:commons-TxAi:x.y.z'
+```groovy
+ compile 'com.endofmaster:commons-tencent-ai:x.y.z'
 ```
