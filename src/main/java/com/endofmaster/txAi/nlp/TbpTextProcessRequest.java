@@ -32,8 +32,8 @@ public class TbpTextProcessRequest extends TxAiRequest<TbpTextProcessResponse> {
         params.put("SignatureMethod", "HmacSHA256");
         params.put("BotId", this.botId);
         params.put("BotEnv", "release");
-        params.put("TerminalId", "xxx");
-        params.put("InputText", "xxx");
+        params.put("TerminalId",this.session);
+        params.put("InputText", this.question);
         return params;
     }
 

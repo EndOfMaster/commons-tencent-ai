@@ -1,6 +1,6 @@
 # Tencent AI Open Platform(腾讯AI开放平台)
 # Tencent Cloud TBP(腾讯智能对话平台)
-![image](https://img.shields.io/badge/maven-1.0.2-green.svg)
+![image](https://img.shields.io/badge/maven-1.0.4-green.svg)
 
 ## 步骤
 1. 注入TxAiClient的bean或创建对象
