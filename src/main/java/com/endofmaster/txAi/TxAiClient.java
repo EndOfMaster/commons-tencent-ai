@@ -1,18 +1,21 @@
 package com.endofmaster.txAi;
 
 import com.endofmaster.commons.util.StreamUtils;
-import com.endofmaster.commons.util.sign.Md5SignUtils;
 import com.endofmaster.commons.util.sign.PresignUtils;
+import com.endofmaster.txAi.nlp.NlpTextChatRequest;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.squareup.okhttp.*;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.codec.digest.HmacAlgorithms;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
@@ -20,10 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +44,8 @@ public class TxAiClient {
     private final String appKey;
     private final HttpClient httpClient;
 
+    private final OkHttpClient client = new OkHttpClient();
+
     public TxAiClient(String appId, String appKey) {
         this.appId = appId;
         this.appKey = appKey;
@@ -48,24 +53,39 @@ public class TxAiClient {
         this.httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
     }
 
+    private Response doRequest(String url, String body) throws IOException {
+        MediaType contentType = MediaType.parse("application/x-www-form-urlencoded");
+        Request request = (new Request.Builder()).url(url).post(RequestBody.create(contentType, body)).build();
+        return this.client.newCall(request).execute();
+    }
+
     public <T extends TxAiResponse> T execute(TxAiRequest<T> request) {
         try {
+            String json;
             Map<String, String> params = request.buildParams();
-            params.put("app_id", appId);
-            params.put("time_stamp", System.currentTimeMillis() / 1000 + "");
-            params.put("nonce_str", RandomStringUtils.randomAlphanumeric(24));
-            params.put("sign", sign(params).toUpperCase());
-
-            RequestBuilder requestBuilder = RequestBuilder.create("POST").setUri(request.getUrl());
-            List<NameValuePair> nameValuePairs = new ArrayList<>();
-            for (String key: params.keySet()) {
-                String value = URLDecoder.decode(params.get(key), CHARSET);
-                nameValuePairs.add(new BasicNameValuePair(key, value));
+            if (request instanceof NlpTextChatRequest) {
+                params.put("app_id", appId);
+                params.put("sign", sign(params).toUpperCase());
+                RequestBuilder requestBuilder = RequestBuilder.create("POST").setUri(request.getUrl());
+                List<NameValuePair> nameValuePairs = new ArrayList<>();
+                for (String key : params.keySet()) {
+                    String value = params.get(key);
+                    nameValuePairs.add(new BasicNameValuePair(key, value));
+                }
+                HttpEntity httpEntity = new UrlEncodedFormEntity(nameValuePairs, Charset.forName(CHARSET));
+                requestBuilder.setEntity(httpEntity);
+                HttpResponse response2 = httpClient.execute(requestBuilder.build());
+                json = StreamUtils.copyToString(response2.getEntity().getContent(), Charset.forName(CHARSET));
+            } else {
+                params.put("SecretId", this.appId);
+                String endpoint = params.get("endpoint");
+                params.remove("endpoint");
+                params.put("Signature", sign2(params, endpoint));
+                PresignUtils.urlencode(params);
+                String linkString = PresignUtils.createLinkString(params, true);
+                Response response = doRequest(request.getUrl(), linkString);
+                json = response.body().string();
             }
-            HttpEntity httpEntity = new UrlEncodedFormEntity(nameValuePairs,Charset.forName(CHARSET));
-            requestBuilder.setEntity(httpEntity);
-            HttpResponse response = httpClient.execute(requestBuilder.build());
-            String json = StreamUtils.copyToString(response.getEntity().getContent(), Charset.forName(CHARSET));
             logger.debug("腾讯开放平台请求结果json：" + json);
             return MAPPER.readValue(json, request.responseClass());
         } catch (SignatureException | IOException e) {
@@ -77,6 +97,12 @@ public class TxAiClient {
         String preSignStr = PresignUtils.createLinkString(params, true) + "&app_key=" + appKey;
         logger.debug("预签名字符串：" + preSignStr);
         return DigestUtils.md5Hex(preSignStr);
+    }
+
+    private String sign2(Map<String, String> params, String endpoint) {
+        String preSignStr = "POST" + endpoint + "/?" + PresignUtils.createLinkString(params, false);
+        logger.debug("预签名字符串：" + preSignStr);
+        return Base64.getEncoder().encodeToString(new HmacUtils(HmacAlgorithms.HMAC_SHA_256, this.appKey).hmac(preSignStr));
     }
 
 }

@@ -1,6 +1,7 @@
 package com.endofmaster.txAi.nlp;
 
 import com.endofmaster.txAi.TxAiRequest;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -26,6 +27,8 @@ public class NlpTextChatRequest extends TxAiRequest<NlpTextChatResponse> {
     @Override
     protected Map<String, String> buildParams() throws UnsupportedEncodingException {
         Map<String, String> params = new HashMap<>();
+        params.put("time_stamp", System.currentTimeMillis() / 1000 + "");
+        params.put("nonce_str", RandomStringUtils.randomAlphanumeric(24));
         params.put("session", session);
         params.put("question", URLEncoder.encode(question, CHARSET).toUpperCase());
         return params;
